@@ -33,44 +33,31 @@ public class ItemController {
     }
 
     @GetMapping
-    public Collection<ItemDto> getByOwnerId(
-            @RequestHeader(X_SHARER_USER_ID) long userId
-    ) {
+    public Collection<ItemDto> getByOwnerId(@RequestHeader(X_SHARER_USER_ID) long userId) {
         log.info("Получение предметов по id владельца: {}", userId);
         return service.findByOwner(userId);
     }
 
     @GetMapping("/search")
-    public Collection<ItemDto> getItemBySearch(
-            @RequestParam String text
-    ) {
+    public Collection<ItemDto> getItemBySearch(@RequestParam String text) {
         log.info("Получение предметов по строке поиска: {}", text);
         return service.findBySearch(text);
     }
 
     @PostMapping
-    public ItemDto create(
-            @RequestHeader(X_SHARER_USER_ID) long userId,
-            @RequestBody @Valid ItemDto itemDto
-    ) {
+    public ItemDto create(@RequestHeader(X_SHARER_USER_ID) long userId, @RequestBody @Valid ItemDto itemDto) {
         log.info("Создается предмет {} с владельцем {}", itemDto, userId);
         return service.addNewItem(itemDto, userId);
     }
 
     @PatchMapping("/{itemId}")
-    public ItemDto update(
-            @RequestHeader(X_SHARER_USER_ID) long userId,
-            @PathVariable long itemId,
-            @RequestBody ItemDto itemDto
-    ) {
+    public ItemDto update(@RequestHeader(X_SHARER_USER_ID) long userId, @PathVariable long itemId, @RequestBody ItemDto itemDto) {
         log.info("Обновление предмета {} с владельцем {}", itemDto, userId);
         return service.updateItem(itemId, itemDto, userId);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(
-            @PathVariable long id
-    ) {
+    public void delete(@PathVariable long id) {
         log.info("Удаление предмета по id: {}", id);
         service.delete(id);
     }

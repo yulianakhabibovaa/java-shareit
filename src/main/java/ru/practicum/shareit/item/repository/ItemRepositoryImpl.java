@@ -4,20 +4,25 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.item.model.Item;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
 public class ItemRepositoryImpl implements ItemRepository {
-    final HashMap<Long, Item> items;
+    private final HashMap<Long, Item> items;
+    private final Map<Long, List<Long>> ownership;
 
     @Override
     public Item addNewItem(Item item) {
         item.setId(getId());
         items.put(item.getId(), item);
+        ownership.computeIfAbsent(item.getOwnerId(), k -> new ArrayList<>()).add(item.getId());
         return item;
     }
 
@@ -38,7 +43,10 @@ public class ItemRepositoryImpl implements ItemRepository {
 
     @Override
     public void deleteItem(long id) {
-        items.remove(id);
+        Item item = items.remove(id);
+        if (item != null) {
+            ownership.get(item.getOwnerId()).remove(item.getId());
+        }
     }
 
     @Override
@@ -48,10 +56,7 @@ public class ItemRepositoryImpl implements ItemRepository {
 
     @Override
     public Collection<Item> findByOwner(long ownerId) {
-        return items.values()
-                .stream()
-                .filter(item -> item.getOwnerId() == ownerId)
-                .toList();
+        return ownership.getOrDefault(ownerId, Collections.emptyList()).stream().map(items::get).toList();
     }
 
     @Override
