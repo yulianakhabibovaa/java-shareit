@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import ru.practicum.shareit.item.dto.CommentDto;
+import ru.practicum.shareit.item.dto.CommentRequestDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.services.ItemService;
 
@@ -27,9 +29,9 @@ public class ItemController {
     private static final String X_SHARER_USER_ID = "X-Sharer-User-Id";
 
     @GetMapping("/{id}")
-    public ItemDto get(@PathVariable long id) {
+    public ItemDto get(@PathVariable long id, @RequestHeader(X_SHARER_USER_ID) long userId) {
         log.info("Получение предмета по id: {}", id);
-        return service.findById(id);
+        return service.findById(id, userId);
     }
 
     @GetMapping
@@ -60,5 +62,13 @@ public class ItemController {
     public void delete(@PathVariable long id) {
         log.info("Удаление предмета по id: {}", id);
         service.delete(id);
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public CommentDto createComment(@RequestHeader(X_SHARER_USER_ID) long userId,
+                                    @PathVariable long itemId,
+                                    @RequestBody CommentRequestDto commentDto) {
+        log.info("Создание комментария к предмету с id: {}", itemId);
+        return service.createComment(itemId, userId, commentDto);
     }
 }
