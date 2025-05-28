@@ -8,7 +8,7 @@ import ru.practicum.shareit.request.dto.ItemRequestDto;
 public class ItemRequestMapper {
     public ItemRequestDto toItemRequestDto(ItemRequest itemRequest) {
         return new ItemRequestDto(itemRequest.getDescription(),
-                itemRequest.getRequester(),
-                itemRequest.getCreated());
+                itemRequest.getRequester().getId(),
+                itemRequest.getCreated().toLocalDate());
     }
 }
