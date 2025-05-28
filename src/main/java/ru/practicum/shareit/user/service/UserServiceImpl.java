@@ -54,6 +54,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserDto findById(long id) {
         return UserMapper.toUserDto(getUser(id));
     }

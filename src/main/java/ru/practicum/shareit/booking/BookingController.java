@@ -36,8 +36,8 @@ public class BookingController {
     }
 
     @PatchMapping("/{bookingId}")
-    public BookingResponseDto approve(@PathVariable(name = "bookingId") long bookingId,
-                                    @RequestParam(value = "approved") boolean approved,
+    public BookingResponseDto approve(@PathVariable long bookingId,
+                                    @RequestParam boolean approved,
                                     @RequestHeader(X_SHARER_USER_ID) long ownerId) {
         log.info("Подтверждение брони владельцем: {}", ownerId);
         BookingResponseDto bookingDto = bookingService.approve(bookingId, approved, ownerId);
@@ -47,7 +47,7 @@ public class BookingController {
 
 
     @GetMapping("/{bookingId}")
-    public BookingResponseDto getBooking(@PathVariable(name = "bookingId") long bookingId,
+    public BookingResponseDto getBooking(@PathVariable long bookingId,
                                        @RequestHeader(X_SHARER_USER_ID) long userId) {
         log.info("Получаем данные о бронировании {}", bookingId);
         return bookingService.findById(bookingId, userId);

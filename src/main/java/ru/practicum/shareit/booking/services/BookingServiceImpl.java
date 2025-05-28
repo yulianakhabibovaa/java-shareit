@@ -4,12 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingResponseDto;
 import ru.practicum.shareit.booking.exception.BookingNotFoundException;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
+import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.DataConflictException;
 import ru.practicum.shareit.exception.ValidationException;
@@ -18,9 +18,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
-import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.repository.UserRepository;
-import ru.practicum.shareit.user.service.UserService;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -36,14 +34,17 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
-    private final UserService userService;
     private static final Sort BY_START_DESC = Sort.by(Sort.Direction.DESC, "start");
 
     @Override
+    @Transactional(readOnly = true)
     public BookingResponseDto findById(long bookingId, long userId) {
-        Booking booking = getBooking(bookingId);
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new BookingNotFoundException(bookingId));
         BookingResponseDto response;
-        Item item = getItem(booking.getItem().getId());
+        long id = booking.getItem().getId();
+        Item item = itemRepository.findById(id)
+                .orElseThrow(() -> new ItemNotFoundException(id));
         if (item.getOwner().getId().equals(userId) || booking.getBooker().getId().equals(userId)) {
             response = BookingMapper.toBookingResponseDto(booking);
         } else {
@@ -53,8 +54,10 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<BookingResponseDto> findByBookerId(long bookerId, String status) {
-        getUser(bookerId);
+        userRepository.findById(bookerId)
+                .orElseThrow(() -> new UserNotFoundException(bookerId));
         BookingStatus bookingStatus = BookingStatus.valueOfOrNull(status);
         if (bookingStatus == null) {
             throw new DataConflictException("Некорректный статус брони: " + status);
@@ -76,8 +79,10 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<BookingResponseDto> findByOwnerId(long ownerId, String status) {
-        getUser(ownerId);
+        userRepository.findById(ownerId)
+                .orElseThrow(() -> new UserNotFoundException(ownerId));
         BookingStatus bookingStatus = BookingStatus.valueOfOrNull(status);
         if (bookingStatus == null) {
             throw new DataConflictException("Некорректный статус брони: " + status);
@@ -103,9 +108,12 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional
     public BookingResponseDto create(BookingDto bookingDto, long bookerId) {
-        User booker = UserMapper.toUser(userService.findById(bookerId));
+        User booker = userRepository.findById(bookerId)
+                .orElseThrow(() -> new UserNotFoundException(bookerId));
         bookingDto.setBookerId(booker.getId());
-        Item item = getItem(bookingDto.getItemId());
+        long id = bookingDto.getItemId();
+        Item item = itemRepository.findById(id)
+                .orElseThrow(() -> new ItemNotFoundException(id));
 
         if (!item.getAvailable()) {
             throw new ValidationException("Предмет недоступен");
@@ -134,12 +142,9 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional
     public BookingResponseDto approve(long bookingId, boolean approved, long ownerId) {
-        Booking booking = getBooking(bookingId);
-        Item item = booking.getItem();
+        Booking booking = bookingRepository.findByIdAndItemOwnerId(bookingId, ownerId)
+                .orElseThrow(() -> new ValidationException("Подтвердить бронь может только владелец"));
 
-        if (!item.getOwner().getId().equals(ownerId)) {
-            throw new ValidationException("Подтвердить бронь может только владелец");
-        }
         if (booking.getStatus().equals(WAITING)) {
             booking.setStatus(approved ? APPROVED : REJECTED);
         } else {
@@ -148,18 +153,4 @@ public class BookingServiceImpl implements BookingService {
         return BookingMapper.toBookingResponseDto(bookingRepository.save(booking));
     }
 
-    private Booking getBooking(long id) {
-        return bookingRepository.findById(id)
-                .orElseThrow(() -> new BookingNotFoundException(id));
-    }
-
-    private Item getItem(long id) {
-        return itemRepository.findById(id)
-                .orElseThrow(() -> new ItemNotFoundException(id));
-    }
-
-    private User getUser(long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException(id));
-    }
 }

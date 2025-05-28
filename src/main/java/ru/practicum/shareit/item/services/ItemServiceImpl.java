@@ -14,7 +14,6 @@ import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.CommentRequestDto;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.mapper.CommentMapper;
-import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.user.User;
@@ -30,6 +29,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static ru.practicum.shareit.booking.model.BookingStatus.APPROVED;
+import static ru.practicum.shareit.item.mapper.CommentMapper.toComment;
 
 @Service
 @RequiredArgsConstructor
@@ -67,11 +67,13 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional
     public void delete(long itemId) {
         itemRepository.deleteById(itemId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ItemDto findById(long itemId, long userId) {
         Item item = getItem(itemId);
         ItemDto itemDto = ItemMapper.toItemDto(item);
@@ -83,11 +85,6 @@ public class ItemServiceImpl implements ItemService {
                 .map(CommentMapper::toCommentDto).toList();
         itemDto.setComments(comments);
         return itemDto;
-    }
-
-    private Item getItem(long itemId) {
-        return itemRepository.findById(itemId)
-                .orElseThrow(() -> new ItemNotFoundException(itemId));
     }
 
     @Override
@@ -109,6 +106,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<ItemDto> findBySearch(String text) {
         return itemRepository.findByNameOrDescription(text)
                 .stream()
@@ -116,8 +114,8 @@ public class ItemServiceImpl implements ItemService {
                 .toList();
     }
 
-    @Transactional
     @Override
+    @Transactional
     public CommentDto createComment(long itemId, long userId, CommentRequestDto commentDto) {
         Item item = getItem(itemId);
         User user = getUser(userId);
@@ -125,13 +123,8 @@ public class ItemServiceImpl implements ItemService {
         if (!booking.getStatus().equals(APPROVED) || booking.getEnd().isAfter(LocalDateTime.now())) {
             throw new ValidationException("Бронирование еще активно");
         }
-        Comment comment = Comment.builder()
-                .text(commentDto.getText())
-                .item(item)
-                .author(user)
-                .build();
 
-        return CommentMapper.toCommentDto(commentRepository.save(comment));
+        return CommentMapper.toCommentDto(commentRepository.save(toComment(commentDto, item, user)));
     }
 
     private void setLastAndNextBookings(ItemDto itemDto) {
@@ -151,5 +144,10 @@ public class ItemServiceImpl implements ItemService {
     private Booking getBooking(User booker, Item item) {
         return bookingRepository.findByBookerAndItem(booker, item)
                 .orElseThrow(() -> new BookingNotFoundException(item.getId(), booker.getId()));
+    }
+
+    private Item getItem(long itemId) {
+        return itemRepository.findById(itemId)
+                .orElseThrow(() -> new ItemNotFoundException(itemId));
     }
 }

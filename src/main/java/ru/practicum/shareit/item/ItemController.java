@@ -67,7 +67,7 @@ public class ItemController {
     @PostMapping("/{itemId}/comment")
     public CommentDto createComment(@RequestHeader(X_SHARER_USER_ID) long userId,
                                     @PathVariable long itemId,
-                                    @RequestBody CommentRequestDto commentDto) {
+                                    @RequestBody @Valid CommentRequestDto commentDto) {
         log.info("Создание комментария к предмету с id: {}", itemId);
         return service.createComment(itemId, userId, commentDto);
     }
