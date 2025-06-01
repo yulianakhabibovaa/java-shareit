@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.practicum.shareit.user.exception.EmailInUseException;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CONFLICT;
@@ -22,7 +21,7 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(CONFLICT)
-    public ErrorResponse handleConflict(final EmailInUseException e) {
+    public ErrorResponse handleConflict(final DataConflictException e) {
         log.warn("Конфликт данных {}", e.getMessage());
         return new ErrorResponse(e.getMessage(), "");
     }

@@ -1,7 +1,9 @@
-package ru.practicum.shareit.item.model;
+package ru.practicum.shareit.booking.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -12,11 +14,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import ru.practicum.shareit.request.ItemRequest;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
+
+import java.time.LocalDateTime;
 
 import static jakarta.persistence.FetchType.LAZY;
 import static jakarta.persistence.GenerationType.IDENTITY;
+
 
 @Entity
 @Builder
@@ -24,21 +29,21 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "items", schema = "public")
-public class Item {
+@Table(name = "bookings", schema = "public")
+public class Booking {
     @Id
     @GeneratedValue(strategy = IDENTITY)
     private Long id;
+    @Column(name = "start_date")
+    private LocalDateTime start;
+    @Column(name = "end_date")
+    private LocalDateTime end;
     @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "owner_id", nullable = false)
-    private User owner;
-    @Column(nullable = false)
-    private String name;
-    @Column(length = 512, nullable = false)
-    private String description;
-    @Column(name = "is_available", nullable = false)
-    private Boolean available;
+    @JoinColumn(name = "booker_id")
+    private User booker;
     @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "request_id")
-    private ItemRequest request;
+    @JoinColumn(name = "item_id")
+    private Item item;
+    @Enumerated(EnumType.STRING)
+    private BookingStatus status;
 }
