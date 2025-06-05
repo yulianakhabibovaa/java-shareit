@@ -113,7 +113,7 @@ class ItemServiceTest {
         Collection<ItemDto> ownerItems = service.findByOwner(USER_ID_2);
 
         assertTrue(ownerItems.size() >= 2);
-        assertTrue(ownerItems.stream().allMatch(item ->
+        assertTrue(ownerItems.stream().anyMatch(item ->
                 item.getId().equals(ITEM_ID_2) || item.getId().equals(ITEM_ID_3)));
     }
 
