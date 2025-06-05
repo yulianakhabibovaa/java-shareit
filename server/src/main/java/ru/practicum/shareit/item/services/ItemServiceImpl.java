@@ -2,6 +2,7 @@ package ru.practicum.shareit.item.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
@@ -30,8 +31,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
+import static ru.practicum.shareit.booking.mapper.BookingMapper.toBookingDto;
 import static ru.practicum.shareit.booking.model.BookingStatus.APPROVED;
 import static ru.practicum.shareit.item.mapper.CommentMapper.toComment;
 
@@ -142,11 +143,18 @@ public class ItemServiceImpl implements ItemService {
 
     private void setLastAndNextBookings(ItemDto itemDto) {
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Europe/Moscow"));
-        BookingProjection bookings = bookingRepository.findNearestBookings(itemDto.getId(), now);
-        Optional.ofNullable(bookings.getLastBooking())
-                .ifPresent(booking -> itemDto.setLastBooking(BookingMapper.toBookingDto(booking)));
-        Optional.ofNullable(bookings.getNextBooking())
-                .ifPresent(booking -> itemDto.setNextBooking(BookingMapper.toBookingDto(booking)));
+        List<Booking> last = bookingRepository.findLastBooking(
+                itemDto.getId(),
+                now,
+                PageRequest.of(0, 1)
+        );
+        List<Booking> next = bookingRepository.findNextBooking(
+                itemDto.getId(),
+                now,
+                PageRequest.of(0, 1)
+        );
+        itemDto.setLastBooking(last.isEmpty() ? null : toBookingDto(last.getFirst()));
+        itemDto.setNextBooking(next.isEmpty() ? null : toBookingDto(next.getFirst()));
     }
 
     private User getUser(long ownerId) {

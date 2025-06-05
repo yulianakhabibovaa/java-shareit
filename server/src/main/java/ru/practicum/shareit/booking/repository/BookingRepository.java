@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking.repository;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -48,18 +49,24 @@ public interface  BookingRepository extends JpaRepository<Booking, Long> {
     Optional<Booking> findByBookerAndItem(User user, Item item);
 
     @Query("""
-        SELECT\s
-            (SELECT b FROM Booking b\s
-             WHERE b.item.id = :itemId\s
-               AND b.status = 'APPROVED'\s
-               AND b.start < :now\s
-             ORDER BY b.start DESC LIMIT 1) AS lastBooking,\s
-            (SELECT b FROM Booking b\s
-             WHERE b.item.id = :itemId\s
-               AND b.status = 'APPROVED'\s
-               AND b.start > :now\s
-             ORDER BY b.start ASC LIMIT 1) AS nextBooking\s
-       """)
-    BookingProjection findNearestBookings(@Param("itemId") Long itemId, @Param("now") LocalDateTime now);
+        SELECT b FROM Booking b
+        WHERE b.item.id = :itemId
+          AND b.status = 'APPROVED'
+          AND b.start < :now
+        ORDER BY b.start DESC
+        """)
+    List<Booking> findLastBooking(@Param("itemId") Long itemId,
+                                  @Param("now") LocalDateTime now,
+                                  Pageable pageable);
 
+    @Query("""
+        SELECT b FROM Booking b
+        WHERE b.item.id = :itemId
+          AND b.status = 'APPROVED'
+          AND b.start > :now
+        ORDER BY b.start ASC
+        """)
+    List<Booking> findNextBooking(@Param("itemId") Long itemId,
+                                  @Param("now") LocalDateTime now,
+                                  Pageable pageable);
 }
