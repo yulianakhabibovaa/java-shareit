@@ -5,26 +5,26 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.exception.BookingNotFoundException;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.booking.exception.BookingNotFoundException;
-import ru.practicum.shareit.booking.model.BookingProjection;
+import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.DataConflictException;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.CommentRequestDto;
+import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.mapper.CommentMapper;
+import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
+import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.request.exception.ItemRequestNotFoundException;
 import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.mapper.ItemMapper;
-import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
@@ -32,9 +32,6 @@ import java.time.ZoneId;
 import java.util.Collection;
 import java.util.List;
 
-import static ru.practicum.shareit.booking.mapper.BookingMapper.toBookingDto;
-import static ru.practicum.shareit.booking.model.BookingStatus.APPROVED;
-import static ru.practicum.shareit.item.mapper.CommentMapper.toComment;
 
 @Slf4j
 @Service
@@ -133,12 +130,12 @@ public class ItemServiceImpl implements ItemService {
         User user = getUser(userId);
         Booking booking = getBooking(user, item);
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Europe/Moscow"));
-        if (!booking.getStatus().equals(APPROVED) || booking.getEnd().isAfter(now)) {
+        if (!booking.getStatus().equals(BookingStatus.APPROVED) || booking.getEnd().isAfter(now)) {
              log.error("Cтатус {} время {} окончание {}", booking.getStatus(), now, booking.getEnd());
             throw new ValidationException("Бронирование еще активно");
         }
 
-        return CommentMapper.toCommentDto(commentRepository.save(toComment(commentDto, item, user)));
+        return CommentMapper.toCommentDto(commentRepository.save(CommentMapper.toComment(commentDto, item, user)));
     }
 
     private void setLastAndNextBookings(ItemDto itemDto) {
@@ -153,8 +150,8 @@ public class ItemServiceImpl implements ItemService {
                 now,
                 PageRequest.of(0, 1)
         );
-        itemDto.setLastBooking(last.isEmpty() ? null : toBookingDto(last.getFirst()));
-        itemDto.setNextBooking(next.isEmpty() ? null : toBookingDto(next.getFirst()));
+        itemDto.setLastBooking(last.isEmpty() ? null : BookingMapper.toBookingDto(last.getFirst()));
+        itemDto.setNextBooking(next.isEmpty() ? null : BookingMapper.toBookingDto(next.getFirst()));
     }
 
     private User getUser(long ownerId) {
