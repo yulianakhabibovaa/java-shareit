@@ -131,7 +131,6 @@ public class ItemServiceImpl implements ItemService {
         Booking booking = getBooking(user, item);
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Europe/Moscow"));
         if (!booking.getStatus().equals(BookingStatus.APPROVED) || booking.getEnd().isAfter(now)) {
-             log.error("Cтатус {} время {} окончание {}", booking.getStatus(), now, booking.getEnd());
             throw new ValidationException("Бронирование еще активно");
         }
 
@@ -154,9 +153,9 @@ public class ItemServiceImpl implements ItemService {
         itemDto.setNextBooking(next.isEmpty() ? null : BookingMapper.toBookingDto(next.getFirst()));
     }
 
-    private User getUser(long ownerId) {
-        return userRepository.findById(ownerId)
-                .orElseThrow(() -> new UserNotFoundException(ownerId));
+    private User getUser(long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
     }
 
     private Booking getBooking(User booker, Item item) {
