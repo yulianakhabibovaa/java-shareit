@@ -66,7 +66,7 @@ public class BookingServiceImpl implements BookingService {
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Europe/Moscow"));
         List<Booking> listBooking = switch (bookingStatus) {
             case ALL -> bookingRepository.findByBookerId(bookerId, BY_START_DESC);
-            case CURRENT -> bookingRepository.findByBookerIdAndEndAfterAndStartBefore(bookerId, now , now, BY_START_DESC);
+            case CURRENT -> bookingRepository.findByBookerIdAndEndAfterAndStartBefore(bookerId, now, now, BY_START_DESC);
             case FUTURE -> bookingRepository.findByBookerIdAndStartAfter(bookerId, now, BY_START_DESC);
             case PAST -> bookingRepository.findByBookerIdAndEndBefore(bookerId, now, BY_START_DESC);
             case WAITING, REJECTED, APPROVED ->
