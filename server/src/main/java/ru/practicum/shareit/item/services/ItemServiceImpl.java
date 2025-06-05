@@ -159,7 +159,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private Booking getBooking(User booker, Item item) {
-        return bookingRepository.findFirstByBookerAndItemOrderByStartDateDesc(booker, item)
+        return bookingRepository.findFirstByBookerAndItemOrderByStartDesc(booker, item)
                 .orElseThrow(() -> new BookingNotFoundException(item.getId(), booker.getId()));
     }
 
