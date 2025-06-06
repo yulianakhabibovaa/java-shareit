@@ -45,5 +45,6 @@ public class Booking {
     @JoinColumn(name = "item_id")
     private Item item;
     @Enumerated(EnumType.STRING)
+    @Column(name = "status", length = 64)
     private BookingStatus status;
 }

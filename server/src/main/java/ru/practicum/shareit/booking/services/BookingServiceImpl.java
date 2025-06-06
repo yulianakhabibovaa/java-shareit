@@ -70,7 +70,7 @@ public class BookingServiceImpl implements BookingService {
             case FUTURE -> bookingRepository.findByBookerIdAndStartAfter(bookerId, now, BY_START_DESC);
             case PAST -> bookingRepository.findByBookerIdAndEndBefore(bookerId, now, BY_START_DESC);
             case WAITING, REJECTED, APPROVED ->
-                    bookingRepository.findByBookerIdAndStatusEquals(bookerId, status, BY_START_DESC);
+                    bookingRepository.findByBookerIdAndStatusEquals(bookerId, bookingStatus, BY_START_DESC);
             default -> new ArrayList<>();
         };
 
@@ -98,7 +98,7 @@ public class BookingServiceImpl implements BookingService {
                     bookingRepository.findByItemOwnerIdAndStartAfter(ownerId, now, BY_START_DESC);
             case PAST -> bookingRepository.findByItemOwnerIdAndEndBefore(ownerId, now, BY_START_DESC);
             case WAITING, REJECTED, APPROVED ->
-                    bookingRepository.findByItemOwnerIdAndStatusEquals(ownerId, status, BY_START_DESC);
+                    bookingRepository.findByItemOwnerIdAndStatusEquals(ownerId, bookingStatus, BY_START_DESC);
             default -> new ArrayList<>();
         };
 

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 
@@ -41,9 +42,9 @@ public interface  BookingRepository extends JpaRepository<Booking, Long> {
 
     List<Booking> findByItemOwnerIdAndEndBefore(Long ownerId, LocalDateTime now, Sort sort);
 
-    List<Booking> findByBookerIdAndStatusEquals(Long bookerId, String status, Sort sort);
+    List<Booking> findByBookerIdAndStatusEquals(Long bookerId, BookingStatus status, Sort sort);
 
-    List<Booking> findByItemOwnerIdAndStatusEquals(Long ownerId, String status, Sort sort);
+    List<Booking> findByItemOwnerIdAndStatusEquals(Long ownerId, BookingStatus status, Sort sort);
 
     Optional<Booking> findFirstByBookerAndItemOrderByStartDesc(User user, Item item);
 

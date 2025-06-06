@@ -13,6 +13,7 @@ import ru.practicum.shareit.exception.DataConflictException;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.exception.UserNotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Transactional
 @SpringBootTest
@@ -131,7 +133,6 @@ class BookingServiceTest {
 
     @Test
     void approve_WhenOwnerRejects_ShouldUpdateStatus() {
-
         BookingResponseDto result = service.approve(BOOKING_ID_1, false, USER_ID_2);
 
         assertEquals(BookingStatus.REJECTED, result.getStatus());
@@ -156,5 +157,79 @@ class BookingServiceTest {
     void findByBookerId_WithInvalidStatus_ShouldThrowException() {
         assertThrows(DataConflictException.class,
                 () -> service.findByBookerId(USER_ID_1, "INVALID_STATUS"));
+    }
+
+    @Test
+    void findByOwnerId_WhenUserNotFound_ShouldThrowException() {
+        assertThrows(UserNotFoundException.class,
+                () -> service.findByOwnerId(999L, "ALL"));
+    }
+
+    @Test
+    void findByOwnerId_WithInvalidStatus_ShouldThrowException() {
+        assertThrows(DataConflictException.class,
+                () -> service.findByOwnerId(USER_ID_2, "INVALID_STATUS"));
+    }
+
+    @Test
+    void findByOwnerId_WithAllStatus_ShouldReturnAllBookingsForOwner() {
+        List<BookingResponseDto> result = service.findByOwnerId(USER_ID_2, "ALL");
+
+        assertEquals(1, result.size());
+        assertEquals(BOOKING_ID_1, result.get(0).getId());
+    }
+
+    @Test
+    void findByOwnerId_WithCurrentStatus_ShouldReturnCurrentBookings() {
+        List<BookingResponseDto> result = service.findByOwnerId(USER_ID_2, "CURRENT");
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void findByOwnerId_WithFutureStatus_ShouldNotReturnFutureBookings() {
+        List<BookingResponseDto> result = service.findByOwnerId(USER_ID_2, "FUTURE");
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void findByOwnerId_WithPastStatus_ShouldReturnPastBookings() {
+        List<BookingResponseDto> result = service.findByOwnerId(USER_ID_2, "PAST");
+
+        assertEquals(1, result.size());
+        assertEquals(BOOKING_ID_1, result.get(0).getId());
+    }
+
+    @Test
+    void findByOwnerId_WithWaitingStatus_ShouldReturnWaitingBookings() {
+        List<BookingResponseDto> result = service.findByOwnerId(USER_ID_2, "WAITING");
+
+        assertEquals(1, result.size());
+        assertEquals(BOOKING_ID_1, result.get(0).getId());
+        assertEquals(BookingStatus.WAITING, result.get(0).getStatus());
+    }
+
+    @Test
+    void findByOwnerId_WithRejectedStatus_ShouldReturnRejectedBookings() {
+        List<BookingResponseDto> result = service.findByOwnerId(USER_ID_2, "REJECTED");
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void findByOwnerId_WithApprovedStatus_ShouldReturnApprovedBookings() {
+        List<BookingResponseDto> result = service.findByOwnerId(USER_ID_1, "APPROVED");
+
+        assertEquals(2, result.size());
+        assertTrue(result.stream().allMatch(b -> b.getStatus() == BookingStatus.APPROVED));
+    }
+
+    @Test
+    void findByOwnerId_ForDifferentOwner_ShouldReturnCorrectBookings() {
+        List<BookingResponseDto> result = service.findByOwnerId(4L, "ALL");
+
+        assertEquals(1, result.size());
+        assertEquals(3L, result.get(0).getId());
     }
 }
