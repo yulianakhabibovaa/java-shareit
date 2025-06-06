@@ -16,7 +16,6 @@ import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +54,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
                 ItemRequest.builder()
                         .description(request.getDescription())
                         .requester(requester)
-                        .created(LocalDateTime.now(ZoneId.of("Europe/Moscow")))
+                        .created(LocalDateTime.now())
                         .build()
         );
         log.info("Создан запрос на предмет: {}", itemRequest);

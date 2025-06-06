@@ -28,7 +28,6 @@ import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Collection;
 import java.util.List;
 
@@ -129,7 +128,7 @@ public class ItemServiceImpl implements ItemService {
         Item item = getItem(itemId);
         User user = getUser(userId);
         Booking booking = getBooking(user, item);
-        LocalDateTime now = LocalDateTime.now(ZoneId.of("Europe/Moscow"));
+        LocalDateTime now = LocalDateTime.now();
         if (!booking.getStatus().equals(BookingStatus.APPROVED) || booking.getEnd().isAfter(now)) {
             throw new ValidationException("Бронирование еще активно");
         }
@@ -138,7 +137,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private void setLastAndNextBookings(ItemDto itemDto) {
-        LocalDateTime now = LocalDateTime.now(ZoneId.of("Europe/Moscow"));
+        LocalDateTime now = LocalDateTime.now();
         List<Booking> last = bookingRepository.findLastBooking(
                 itemDto.getId(),
                 now,

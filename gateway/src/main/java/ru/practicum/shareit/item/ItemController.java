@@ -63,6 +63,5 @@ public class ItemController {
                                                 @PathVariable long id,
                                                 @RequestBody CommentDto comment) {
         return client.addComment(userId, id, comment);
-
     }
 }

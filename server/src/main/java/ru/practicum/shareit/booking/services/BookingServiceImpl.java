@@ -21,7 +21,6 @@ import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,7 +62,7 @@ public class BookingServiceImpl implements BookingService {
         if (bookingStatus == null) {
             throw new DataConflictException("Некорректный статус брони: " + status);
         }
-        LocalDateTime now = LocalDateTime.now(ZoneId.of("Europe/Moscow"));
+        LocalDateTime now = LocalDateTime.now();
         List<Booking> listBooking = switch (bookingStatus) {
             case ALL -> bookingRepository.findByBookerId(bookerId, BY_START_DESC);
             case CURRENT -> bookingRepository.findByBookerIdAndEndAfterAndStartBefore(bookerId, now, now, BY_START_DESC);
@@ -89,7 +88,7 @@ public class BookingServiceImpl implements BookingService {
             throw new DataConflictException("Некорректный статус брони: " + status);
         }
 
-        LocalDateTime now = LocalDateTime.now(ZoneId.of("Europe/Moscow"));
+        LocalDateTime now = LocalDateTime.now();
         List<Booking> listBooking = switch (bookingStatus) {
             case ALL -> bookingRepository.findByItemOwnerId(ownerId, BY_START_DESC);
             case CURRENT ->
