@@ -11,8 +11,8 @@ import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.exception.BusinessException;
 import ru.practicum.shareit.exception.DataConflictException;
-import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
@@ -48,7 +48,7 @@ public class BookingServiceImpl implements BookingService {
         if (item.getOwner().getId().equals(userId) || booking.getBooker().getId().equals(userId)) {
             response = BookingMapper.toBookingResponseDto(booking);
         } else {
-            throw new ValidationException("Бронь доступна только для владельца или забронировавшего");
+            throw new BusinessException("Бронь доступна только для владельца или забронировавшего");
         }
         return response;
     }
@@ -117,16 +117,13 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new ItemNotFoundException(id));
 
         if (!item.getAvailable()) {
-            throw new ValidationException("Предмет недоступен");
+            throw new BusinessException("Предмет недоступен");
         }
         if (bookingRepository.isAvailable(item.getId(), bookingDto.getStart(), bookingDto.getEnd())) {
-            throw new ValidationException("Предмет на эти даты недоступен");
+            throw new BusinessException("Предмет на эти даты недоступен");
         }
         if (item.getOwner().getId().equals(bookerId)) {
-            throw new ValidationException("Владелец не может создать бронь");
-        }
-        if (bookingDto.getEnd().isBefore(bookingDto.getStart())) {
-            throw new ValidationException("Дата окончания бронирования не может быть раньше даты начала");
+            throw new BusinessException("Владелец не может создать бронь");
         }
 
         Booking booking = Booking.builder()
@@ -143,12 +140,12 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public BookingResponseDto approve(long bookingId, boolean approved, long ownerId) {
         Booking booking = bookingRepository.findByIdAndItemOwnerId(bookingId, ownerId)
-                .orElseThrow(() -> new ValidationException("Подтвердить бронь может только владелец"));
+                .orElseThrow(() -> new BusinessException("Подтвердить бронь может только владелец"));
 
         if (booking.getStatus().equals(WAITING)) {
             booking.setStatus(approved ? APPROVED : REJECTED);
         } else {
-            throw new ValidationException("Нельзя подтвердить бронирование в статусе " + booking.getStatus());
+            throw new BusinessException("Нельзя подтвердить бронирование в статусе " + booking.getStatus());
         }
         return BookingMapper.toBookingResponseDto(bookingRepository.save(booking));
     }

@@ -30,7 +30,7 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(BAD_REQUEST)
-    public ErrorResponse handleValidation(final ValidationException e) {
+    public ErrorResponse handleBusinessException(final BusinessException e) {
         log.warn("Некорректный запрос {}", e.getMessage());
         return new ErrorResponse(e.getMessage(), "");
     }

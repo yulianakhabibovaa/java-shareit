@@ -10,8 +10,8 @@ import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.exception.BusinessException;
 import ru.practicum.shareit.exception.DataConflictException;
-import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.CommentRequestDto;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -130,7 +130,7 @@ public class ItemServiceImpl implements ItemService {
         Booking booking = getBooking(user, item);
         LocalDateTime now = LocalDateTime.now();
         if (!booking.getStatus().equals(BookingStatus.APPROVED) || booking.getEnd().isAfter(now)) {
-            throw new ValidationException("Бронирование еще активно");
+            throw new BusinessException("Бронирование еще активно");
         }
 
         return CommentMapper.toCommentDto(commentRepository.save(CommentMapper.toComment(commentDto, item, user)));

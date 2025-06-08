@@ -29,7 +29,7 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 public class ItemRequest {
     @Id
     @GeneratedValue(strategy = IDENTITY)
-    private long id;
+    private Long id;
     @Column(nullable = false)
     private String description;
     @ManyToOne

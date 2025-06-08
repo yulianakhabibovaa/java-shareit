@@ -3,7 +3,6 @@ package ru.practicum.shareit.request.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.request.dto.ItemRequestDetailedDto;
@@ -47,9 +46,6 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     public ItemRequestDetailedDto create(ItemRequestDto request) {
         User requester = userRepository.findById(request.getRequester())
                 .orElseThrow(() -> new UserNotFoundException(request.getRequester()));
-        if (request.getDescription().isBlank()) {
-            throw new ValidationException("Описание запроса не может быть пустым!");
-        }
         ItemRequest itemRequest = itemRequestRepository.save(
                 ItemRequest.builder()
                         .description(request.getDescription())
